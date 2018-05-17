@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # quarto.py
-# Author: Quentin Lurkin
-# Version: March 29, 2018
+# Author: Quentin Lurkin & Kassabeh Zakariya & Jabbour Hanâ
+# Version: May 17, 2018
 
 import argparse
 import socket
@@ -76,7 +76,7 @@ class QuartoState(game.GameState):
             self._state = stateBackup
             raise e
 
-    
+
     def _same(self, feature, elems):
         try:
             elems = list(map(lambda piece: piece[feature], elems))
@@ -86,7 +86,7 @@ class QuartoState(game.GameState):
 
     def _quarto(self, elems):
         return self._same('shape', elems) or self._same('color', elems) or self._same('filling', elems) or self._same('height', elems)
-    
+
     def winner(self):
         state = self._state['visible']
         board = state['board']
@@ -110,7 +110,7 @@ class QuartoState(game.GameState):
             if self._quarto([board[3 + 3 * e] for e in range(4)]):
                 return player
         return None if board.count(None) == 0 else -1
-    
+
     def displayPiece(self, piece):
         if piece is None:
             return " " * 6
@@ -129,7 +129,7 @@ class QuartoState(game.GameState):
             for col in range(4):
                 print(self.displayPiece(state['board'][row*4+col]), end="|")
             print()
-        
+
         print('\nRemaining Pieces:')
         print(", ".join([self.displayPiece(piece) for piece in state['remainingPieces']]))
 
@@ -145,7 +145,7 @@ class QuartoServer(game.GameServer):
     '''Class representing a server for the Quarto game.'''
     def __init__(self, verbose=False):
         super().__init__('Quarto', 2, QuartoState(), verbose=verbose)
-    
+
     def applymove(self, move):
         try:
             move = json.loads(move)
@@ -160,10 +160,10 @@ class QuartoClient(game.GameClient):
     def __init__(self, name, server, verbose=False):
         super().__init__(server, QuartoState, verbose=verbose)
         self.__name = name
-    
+
     def _handle(self, message):
         pass
-    
+
     def _nextmove(self, state):
         visible = state._state['visible']
         move = {}
@@ -182,9 +182,41 @@ class QuartoClient(game.GameClient):
             state.applymove(move)
         except:
             del(move['quarto'])
-        
+
         # send the move
         return json.dumps(move)
+
+    def ThreeLow (self):
+        #function that checks if 3 low pieces are about to make a quarto
+        #Return : True if yes
+        #         False otherwise
+        
+        countH = 0
+        countV = 0
+        countD1 = 0
+        countD2 = 0
+        for i in range(4) :
+        #Horizontal check
+            for h in range(4):
+                if list(board[4*i + h])[0] is "(" and list(board[4*i + h])[1] is "("  :
+                    countH+=1
+        #Vertical check
+            for v in range(4):
+                if list(board[4*v + i])[0] is "(" and list(board[4*v + i])[1] is "("  :
+                    countV+=1
+        #First diagonal check
+            for D1 in range(4):
+                if list(board[5 * D1])[0] is "(" and list(board[5 * D1])[1] is "(" :
+                    countD1+=1
+        #Second diagonal check
+            for D2 in range(4):
+                if list(board[3 + 3*D2])[0] is "(" annd list(board[3 + 3*D2])[1] is "(":
+                    countD2+=1
+
+        if countH or countV or countD1 or countD2 == 3 :
+            return True
+        else :
+            return False
 
 
 if __name__ == '__main__':
