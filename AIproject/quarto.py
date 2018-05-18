@@ -171,10 +171,13 @@ class QuartoClient(game.GameClient):
 
         # select the position were we'll put the piece given by the opponent
         if visible['pieceToPlay'] is not None:
-            nextPosition(state)
+            if self.nextPosition(state):
+                self.nextPosition(state)
+            else :
+                move['pos'] = random.randint(0,15)
 
         # select the next piece we'll give to the opponent
-        nextPieceToGive(state)
+        self.nextPieceToGive(state)
 
         # apply the move to check for quarto
         # applymove will raise if we announce a quarto while there is not
@@ -204,294 +207,333 @@ class QuartoClient(game.GameClient):
         countH,countV,countD1,countD2 = 0
 
         #low case
-        if  bool(re.search("\[{1}",visible['pieceToPlay']) or bool(re.search("\({1}",visible['pieceToPlay']) :
+        patternLow = r'[\[\(]{1}.{2}[\]\)]{1}'
+        pLow = re.compile(patternLow)
+        if  bool(pLow.match(visible['pieceToPlay'])) :
             #No need to check were we can put the piece if there's no quarto possible
-            if threeLow :
+            if self.threeLow :
                 for i in range(4) :
                 #Horizontal check
                     for h in range(4):
-                        if bool(re.search("\[{1}", board[4*i + h])) or bool(re.search("\({1}", board[4*i + h])) :
+                        if bool(pLow.match(board[4*i + h])) :
                             countH+=1
+                        elif countH == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 4*i+h
-                        elif countH == 3 :
-                            move['pos'] = emptySpot
+
                 #Vertical check
                     for v in range(4):
-                        if bool(re.search("\[{1}", board[4*v + i])) or bool(re.search("\({1}", board[4*v + i])) :
+                        if bool(pLow.match(board[4*v + i])) :
                             countV+=1
+                        elif countV == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =4*v+i
-                        elif countV == 3 :
-                            move['pos'] = emptySpot
+
                 #First diagonal check
                     for D1 in range(4):
-                        if bool(re.search("\[{1}", board[5 * D1])) or bool(re.search("\({1}", board[5 * D1])) :
+                        if bool(pLow.match(board[5 * D1])) :
                             countD1+=1
+                        elif countD1 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =5*D1
-                        elif countD1 == 3 :
-                            move['pos'] = emptySpot
                 #Second diagonal check
                     for D2 in range(4):
-                        if bool(re.search("\[{1}", board[3 + 3*D2])) or bool(re.search("\({1}", board[3 + 3*D2])) :
+                        if bool(pLow.match(board[3 + 3*D2])) :
                             countD2+=1
+                        elif countD2 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 3 + 3*D2
-                        elif countD2 == 3 :
-                            move['pos'] = emptySpot
+
         #High case
-        if  bool(re.search("\[{2}",visible['pieceToPlay']) or bool(re.search("\({2}",visible['pieceToPlay']) :
-            if threeHigh :
+        patternHigh = r'[\[\(]{2}.{2}[\]\)]{2}'
+        pHigh = re.compile(pattern)
+        if  bool(pHigh.match(visible['pieceToPlay'])):
+            if self.threeHigh :
                 for i in range(4) :
                 #Horizontal check
                     for h in range(4):
-                        if bool(re.search("\[{2}", board[4*i + h])) or bool(re.search("\({2}", board[4*i + h])) :
+                        if bool(pHigh.match(board[4*i + h])) :
                             countH+=1
+                        elif countH == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 4*i+h
-                        elif countH == 3 :
-                            move['pos'] = emptySpot
+
                 #Vertical check
                     for v in range(4):
-                        if bool(re.search("\[{2}", board[4*v + i])) or bool(re.search("\({2}", board[4*v + i])) :
+                        if bool(pHigh.match(board[4*v + i])) :
                             countV+=1
+                        elif countV == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =4*v+i
-                        elif countV == 3 :
-                            move['pos'] = emptySpot
+
                 #First diagonal check
                     for D1 in range(4):
-                        if bool(re.search("\[{2}", board[5 * D1])) or bool(re.search("\({2}", board[5 * D1])) :
+                        if bool(pHigh.match(board[5 * D1])) :
                             countD1+=1
+                        elif countD1 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =5*D1
-                        elif countD1 == 3 :
-                            move['pos'] = emptySpot
+
                 #Second diagonal check
                     for D2 in range(4):
-                        if bool(re.search("\[{2}", board[3 + 3*D2])) or bool(re.search("\({2}", board[3 + 3*D2])) :
+                        if bool(pHigh.match(board[3 + 3*D2])) :
                             countD2+=1
+                        elif countD2 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 3 + 3*D2
-                        elif countD2 == 3 :
-                            move['pos'] = emptySpot
+
         #Light case
-        if  bool(re.search("L",visible['pieceToPlay']) :
-            if threeLight :
+        if  bool(re.search("L",visible['pieceToPlay'])) :
+            if self.threeLight :
                 for i in range(4) :
                 #Horizontal check
                     for h in range(4):
                         if bool(re.search("L", board[4*i + h])) :
                             countH+=1
+                        elif countH == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 4*i+h
-                        elif countH == 3 :
-                            move['pos'] = emptySpot
+
                 #Vertical check
                     for v in range(4):
                         if bool(re.search("L", board[4*v + i])) :
                             countV+=1
+                        elif countV == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =4*v+i
-                        elif countV == 3 :
-                            move['pos'] = emptySpot
+
                 #First diagonal check
                     for D1 in range(4):
                         if bool(re.search("L", board[5 * D1])) :
                             countD1+=1
+                        elif countD1 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =5*D1
-                        elif countD1 == 3 :
-                            move['pos'] = emptySpot
+
                 #Second diagonal check
                     for D2 in range(4):
                         if bool(re.search("L", board[3 + 3*D2])) :
                             countD2+=1
+                        elif countD2 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 3 + 3*D2
-                        elif countD2 == 3 :
-                            move['pos'] = emptySpot
+
         #Dark case
-        if  bool(re.search("D",visible['pieceToPlay']) :
-            if threeLight :
+        if  bool(re.search("D",visible['pieceToPlay'])) :
+            if self.threeDark :
                 for i in range(4) :
                 #Horizontal check
                     for h in range(4):
                         if bool(re.search("D", board[4*i + h])) :
                             countH+=1
+                        elif countH == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 4*i+h
-                        elif countH == 3 :
-                            move['pos'] = emptySpot
+
                 #Vertical check
                     for v in range(4):
                         if bool(re.search("D", board[4*v + i])) :
                             countV+=1
+                        elif countV == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =4*v+i
-                        elif countV == 3 :
-                            move['pos'] = emptySpot
+
                 #First diagonal check
                     for D1 in range(4):
                         if bool(re.search("D", board[5 * D1])) :
                             countD1+=1
+                        elif countD1 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =5*D1
-                        elif countD1 == 3 :
-                            move['pos'] = emptySpot
+
                 #Second diagonal check
                     for D2 in range(4):
                         if bool(re.search("D", board[3 + 3*D2])) :
                             countD2+=1
+                        elif countD2 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 3 + 3*D2
-                        elif countD2 == 3 :
-                            move['pos'] = emptySpot
+
         #Full case
-        if  bool(re.search("F",visible['pieceToPlay']) :
-            if threeLight :
+        if  bool(re.search("F",visible['pieceToPlay'])) :
+            if self.threeFull :
                 for i in range(4) :
                 #Horizontal check
                     for h in range(4):
                         if bool(re.search("F", board[4*i + h])) :
                             countH+=1
+                        elif countH == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 4*i+h
-                        elif countH == 3 :
-                            move['pos'] = emptySpot
+
                 #Vertical check
                     for v in range(4):
                         if bool(re.search("F", board[4*v + i])) :
                             countV+=1
+                        elif countV == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =4*v+i
-                        elif countV == 3 :
-                            move['pos'] = emptySpot
+
                 #First diagonal check
                     for D1 in range(4):
                         if bool(re.search("F", board[5 * D1])) :
                             countD1+=1
+                        elif countD1 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =5*D1
-                        elif countD1 == 3 :
-                            move['pos'] = emptySpot
+
                 #Second diagonal check
                     for D2 in range(4):
                         if bool(re.search("F", board[3 + 3*D2])) :
                             countD2+=1
+                        elif countD2 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 3 + 3*D2
-                        elif countD2 == 3 :
-                            move['pos'] = emptySpot
+
         #Empty case
-        if  bool(re.search("E",visible['pieceToPlay']) :
-            if threeLight :
+        if  bool(re.search("E",visible['pieceToPlay'])) :
+            if self.threeEmpty :
                 for i in range(4) :
                 #Horizontal check
                     for h in range(4):
                         if bool(re.search("E", board[4*i + h])) :
                             countH+=1
+                        elif countH == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 4*i+h
-                        elif countH == 3 :
-                            move['pos'] = emptySpot
+
                 #Vertical check
                     for v in range(4):
                         if bool(re.search("E", board[4*v + i])) :
                             countV+=1
+                        elif countV == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =4*v+i
-                        elif countV == 3 :
-                            move['pos'] = emptySpot
+
                 #First diagonal check
                     for D1 in range(4):
                         if bool(re.search("E", board[5 * D1])) :
                             countD1+=1
+                        elif countD1 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =5*D1
-                        elif countD1 == 3 :
-                            move['pos'] = emptySpot
+
                 #Second diagonal check
                     for D2 in range(4):
                         if bool(re.search("E", board[3 + 3*D2])) :
                             countD2+=1
+                        elif countD2 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 3 + 3*D2
-                        elif countD2 == 3 :
-                            move['pos'] = emptySpot
+
         #Round case
-        if  bool(re.search("\(",visible['pieceToPlay']) :
-            if threeLight :
+        if  bool(re.search("\(",visible['pieceToPlay'])) :
+            if self.threeRound :
                 for i in range(4) :
                 #Horizontal check
                     for h in range(4):
                         if bool(re.search("\(", board[4*i + h])) :
                             countH+=1
+                        elif countH == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 4*i+h
-                        elif countH == 3 :
-                            move['pos'] = emptySpot
+
                 #Vertical check
                     for v in range(4):
                         if bool(re.search("\(", board[4*v + i])) :
                             countV+=1
+                        elif countV == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =4*v+i
-                        elif countV == 3 :
-                            move['pos'] = emptySpot
+
                 #First diagonal check
                     for D1 in range(4):
                         if bool(re.search("\(", board[5 * D1])) :
                             countD1+=1
+                        elif countD1 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =5*D1
-                        elif countD1 == 3 :
-                            move['pos'] = emptySpot
+
                 #Second diagonal check
                     for D2 in range(4):
                         if bool(re.search("\(", board[3 + 3*D2])) :
                             countD2+=1
+                        elif countD2 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 3 + 3*D2
-                        elif countD2 == 3 :
-                            move['pos'] = emptySpot
+
         #Square case
-        if  bool(re.search("\[",visible['pieceToPlay']) :
-            if threeLight :
+        if  bool(re.search("\[",visible['pieceToPlay'])) :
+            if self.threeSquare :
                 for i in range(4) :
                 #Horizontal check
                     for h in range(4):
                         if bool(re.search("\[", board[4*i + h])) :
                             countH+=1
+                        elif countH == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 4*i+h
-                        elif countH == 3 :
-                            move['pos'] = emptySpot
+
                 #Vertical check
                     for v in range(4):
                         if bool(re.search("\[", board[4*v + i])) :
                             countV+=1
+                        elif countV == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =4*v+i
-                        elif countV == 3 :
-                            move['pos'] = emptySpot
+
                 #First diagonal check
                     for D1 in range(4):
                         if bool(re.search("\[", board[5 * D1])) :
                             countD1+=1
+                        elif countD1 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot =5*D1
-                        elif countD1 == 3 :
-                            move['pos'] = emptySpot
+
                 #Second diagonal check
                     for D2 in range(4):
                         if bool(re.search("\[", board[3 + 3*D2])) :
                             countD2+=1
+                        elif countD2 == 3 :
+                            move['pos'] = visible['board'].index(emptySpot)
                         else :
                             emptySpot = 3 + 3*D2
-                        elif countD2 == 3 :
-                            move['pos'] = emptySpot
+
+        if len(move['pos']) != 0 :
+            return True, move['pos']
+        else :
+            return False
 
     def nextPieceToGive(self,state) :
         """
@@ -505,67 +547,77 @@ class QuartoClient(game.GameClient):
         move = {}
         save = visible['remainingPieces']
 
-        if threeLow:
+        if self.threeLow:
+            pattern = r'[\[\(]{1}.{2}[\]\)]{1}'
+            p = re.compile(pattern)
+
             for elem in save :
-                if  bool(re.search("\[{1}", elem)) or bool(re.search("\({1}",elem) :
+                if bool(p.match(elem)):
                     save.remove(elem)
-        if threeHigh:
+        if self.threeHigh:
+            pattern = r'[\[\(]{2}.{2}[\]\)]{2}'
+            p = re.compile(pattern)
             for elem in save :
-                if  bool(re.search("\[{2}", elem)) or bool(re.search("\({2}",elem) :
+                if bool(p.match(elem)) :
                     save.remove(elem)
-        if threeEmpty:
+        if self.threeEmpty:
             for elem in save :
                 if  bool(re.search("E", elem)):
                     save.remove(elem)
-        if threeFull :
+        if self.threeFull :
             for elem in save :
                 if  bool(re.search("F", elem)):
                     save.remove(elem)
-        if threeDark :
+        if self.threeDark :
             for elem in save :
                 if  bool(re.search("D", elem)):
                     save.remove(elem)
-        if threeLight :
+        if self.threeLight :
             for elem in save :
                 if  bool(re.search("L", elem)):
                     save.remove(elem)
-        if threeRound :
+        if self.threeRound :
             for elem in save :
                 if  bool(re.search("\(", elem)):
                     save.remove(elem)
-        if threeSquare :
+        if self.threeSquare :
             for elem in save :
                 if  bool(re.search("\[", elem)):
                     save.remove(elem)
         try :
             #give the opponent a piece which will not let him win
+            #doesn't work like intended because it gives the index of the piece in
+            #the save variable, and we want to say "a random piece which is in save"
             move['nextPiece'] = random.randint(0, len(save) - 1)
+
         except :
             #in the case that there's no more safe play, you've lost anyway so give a random piece
             move['nextPiece'] = random.randint(0, len(visible['remainingPieces']) - 1)
+        return move
 
-    def threeLow (self):
+    def threeLow(self):
         #function that checks if 3 Low pieces are about to make a quarto
         #Return : True if yes
         #         False otherwise
-
+        pattern = r'[\[\(]{1}.{2}[\]\)]{1}'
+        p = re.compile(pattern)
         countH,countV,countD1,countD2 = 0
         for i in range(4) :
         #Horizontal check
             for h in range(4):
-                if bool(re.search("\[{1}", board[4*i + h])) or bool(re.search("\({1}", board[4*i + h])) :
+                if bool(p.match(board[4*i + h])) :
                     countH+=1
         #Vertical check
             for v in range(4):
-                if bool(re.search("\[{1}", board[4*v + i])) or bool(re.search("\({1}", board[4*v + i])) :
+                if bool(p.match(board[4*v + i])) :
                     countV+=1
         #First diagonal check
             for D1 in range(4):
-                if bool(re.search("\[{1}", board[5 * D1])) or bool(re.search("\({1}", board[5 * D1])) :
+                if bool(p.match(board[5 * D1])) :
                     countD1+=1
         #Second diagonal check
             for D2 in range(4):
-                if bool(re.search("\[{1}", board[3 + 3*D2])) or bool(re.search("\({1}", board[3 + 3*D2])) :
+                if bool(p.match(board[3 + 3*D2])) :
                     countD2+=1
 
         if countH or countV or countD1 or countD2 == 3 :
@@ -573,28 +625,30 @@ class QuartoClient(game.GameClient):
         else :
             return False
 
-    def threeHigh (self):
+    def threeHigh(self):
         #function that checks if 3 High pieces are about to make a quarto
         #Return : True if yes
         #         False otherwise
 
+        pattern = r'[\[\(]{2}.{2}[\]\)]{2}'
+        p = re.compile(pattern)
         countH,countV,countD1,countD2 = 0
         for i in range(4) :
         #Horizontal check
             for h in range(4):
-                if bool(re.search("\[{2}", board[4*i + h])) or bool(re.search("\({2}", board[4*i + h])) :
+                if bool(p.match(board[4*i + h])) :
                     countH+=1
         #Vertical check
             for v in range(4):
-                if bool(re.search("\[{2}", board[4*v + i])) or bool(re.search("\({2}", board[4*v + i])) :
+                if bool(p.match(board[4*v + i])) :
                     countV+=1
         #First diagonal check
             for D1 in range(4):
-                if bool(re.search("\[{2}", board[5 * D1])) or bool(re.search("\({2}", board[5 * D1])) :
+                if bool(p.match(board[5 * D1])) :
                     countD1+=1
         #Second diagonal check
             for D2 in range(4):
-                if bool(re.search("\[{2}", board[3 + 3*D2])) or bool(re.search("\({2}", board[3 + 3*D2])) :
+                if bool(p.match(board[3 + 3*D2])) :
                     countD2+=1
 
         if countH or countV or countD1 or countD2 == 3 :
@@ -602,7 +656,7 @@ class QuartoClient(game.GameClient):
         else :
             return False
 
-    def threeLight (self):
+    def threeLight(self):
         #function that checks if 3 light pieces are about to make a quarto
         #Return : True if yes
         #         False otherwise
@@ -631,7 +685,7 @@ class QuartoClient(game.GameClient):
         else :
             return False
 
-    def threeDark (self):
+    def threeDark(self):
         #function that checks if 3 Dark pieces are about to make a quarto
         #Return : True if yes
         #         False otherwise
@@ -660,7 +714,7 @@ class QuartoClient(game.GameClient):
         else :
             return False
 
-    def threeFull (self):
+    def threeFull(self):
         #function that checks if 3 Fullfilled pieces are about to make a quarto
         #Return : True if yes
         #         False otherwise
@@ -689,7 +743,7 @@ class QuartoClient(game.GameClient):
         else :
             return False
 
-    def threeEmpty (self):
+    def threeEmpty(self):
         #function that checks if 3 Empty pieces are about to make a quarto
         #Return : True if yes
         #         False otherwise
@@ -718,7 +772,7 @@ class QuartoClient(game.GameClient):
         else :
             return False
 
-    def threeRound (self):
+    def threeRound(self):
         #function that checks if 3 Round shaped pieces are about to make a quarto
         #Return : True if yes
         #         False otherwise
